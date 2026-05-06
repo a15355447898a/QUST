@@ -1,0 +1,32 @@
+\chapter{实验材料与实验方法}
+\section{实验试剂与实验设备}
+\subsection{实验试剂及实验材料}
+实验中所使用的主要实验试剂及材料见下表2-1
+
+\begin{table}[htb]
+\centering
+% 【修复】：删掉了你手动敲的“表2-1”，LaTeX会自动生成“表 2.1”
+\caption{主要实验试剂及材料\\Tab. 2-1 The primary experiment regents and materials}
+\label{tab:materials}
+
+% 【修改1】：用 tabular* 替换 tabular，并设置为页面宽度 \textwidth
+% 【修改2】：用 @{\extracolsep{\fill}} 让列与列之间的间距自动拉伸填满
+% 【修改3】：用 cccc 替换 llll，让所有列的文字全部居中对齐
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} c c c c }
+\toprule[1.5pt] % 【修改4】：在 \toprule 后面加 [1.5pt] 让顶线变粗
+
+% 【修改5】：给第一行的每一列文字加上 \textbf{} 进行加粗
+\textbf{药品名称及缩写} & \textbf{化学式} & \textbf{规格} & \textbf{生产厂家}\\
+
+\midrule % 中间的细线保持不变
+钛酸四丁酯（TNBT） & C$_{16}$H$_{36}$O$_4$Ti & 98.0\% & 上海展云化工有限公司\\
+二氧化钛 P25 & TiO$_2$ & 分析纯 & 德国 Evonik Industries AG\\
+氧化钇 & Y$_2$O$_3$ & 分析纯 & 上海跃泾化工有限公司\\
+硝酸 & HNO$_3$ & 68.0 wt\% & 天津巴斯夫化工有限公司\\
+\midrule
+\end{tabular*}
+\end{table}
+
+\chapter*{3 结论（总结）}
+\addcontentsline{toc}{chapter}{结论（总结）}
+结论内容

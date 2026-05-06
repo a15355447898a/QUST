@@ -1,21 +1,18 @@
 % !Mode:: "TeX:UTF-8"
 %% 请使用 XeLaTeX 编译本文.
-% \documentclass{QDUBachelor}% 此行生成带彩色链接的文档. 选项 forprint: 交付打印时添加, 避免彩色链接字迹打印偏淡.
-\documentclass[forprint]{QDUBachelor}
+% \documentclass{QUST理工类模板}% 此行生成带彩色链接的文档. 选项 forprint: 交付打印时添加, 避免彩色链接字迹打印偏淡.
+\documentclass[forprint]{QUST理工类模板}
 \begin{document}
 \frontmatter
-\include{content/cover}
+\include{内容/封面}
 \declaration
-\include{content/abstr}
-\emptystyles
-\setcounter{page}{1}
-\tableofcontents
+\include{内容/摘要}
+\qkusttableofcontents
 
-\mainmatter
-\restorestyles
-\include{content/chap1}
-\include{content/chap2}
-\include{content/thanks}
-\reference{mainref}
-\include{content/appdx}
+\qkustmainmatter
+\include{内容/第一章}
+\include{内容/第二章}
+\reference{参考文献}
+\include{内容/附录}
+\include{内容/致谢}
 \end{document}
