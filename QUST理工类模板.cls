@@ -9,12 +9,22 @@
 \ProcessOptions\relax
 
 \LoadClass[twoside,openany,zihao=-4,UTF8]{ctexbook}
+\raggedbottom
 
 % 【新增】强制将双面打印时的“空白占位页”替换为普通的单面换页，消灭所有顽固空白页
 \let\cleardoublepage\clearpage
 
 \RequirePackage{geometry}
-\geometry{a4paper,left=2.5cm,right=2cm,top=1.8cm,bottom=2cm,headheight=14pt,headsep=1.5cm,footskip=1.75cm,includehead,includefoot}
+\geometry{
+    a4paper,
+    left=2.5cm,
+    right=2cm,
+    top=2.5cm,      % 对应Word：上边距 2.5cm
+    bottom=2cm,     % 对应Word：下边距 2cm
+    headheight=15pt,% 页眉盒子的高度（防止LaTeX报警告，通常设15pt即可）
+    headsep=0.5cm,  % 页眉底部到正文顶部的距离（2.5 - 1.5 - 页眉自身高度 ≈ 0.5cm）
+    footskip=0.25cm % 正文底部到页脚（页码）的距离（核心考点：2.0 - 1.75 = 0.25cm）
+}
 \RequirePackage{fancyhdr}
 \RequirePackage{hyperref}
 \RequirePackage{graphicx}
@@ -31,6 +41,7 @@
 \RequirePackage{longtable}
 \RequirePackage{float}
 \RequirePackage[super,square]{natbib}
+\bibpunct{[}{]}{，}{s}{}{,}
 \RequirePackage{fontspec}
 \RequirePackage{xeCJK}
 \RequirePackage{setspace}
@@ -38,6 +49,8 @@
 \RequirePackage{ulem}
 \RequirePackage{listings}
 \RequirePackage{etoolbox}
+\RequirePackage{enumitem}
+\RequirePackage{tabularx}
 
 \hypersetup{pdfencoding=auto}
 \ifprint
@@ -48,10 +61,10 @@
 
 \defaultfontfeatures{Ligatures=TeX}
 \setmainfont[Path=字体目录/,UprightFont={Times New Roman.ttf},BoldFont={Times New Roman.ttf},BoldFeatures={FakeBold=4.5},ItalicFont={Times New Roman.ttf},BoldItalicFont={Times New Roman.ttf}]{Times New Roman}
-\setCJKmainfont[Path=字体目录/,UprightFont={宋体.ttc},BoldFont={黑体.ttf},ItalicFont={宋体.ttc},AutoFakeSlant=.15]{宋体}
+\setCJKmainfont[Path=字体目录/,UprightFont={宋体.ttc},BoldFont={宋体.ttc},BoldFeatures={FakeBold=2.0},ItalicFont={宋体.ttc},AutoFakeSlant=.15]{宋体}
 \setCJKsansfont[Path=字体目录/,UprightFont={黑体.ttf},BoldFont={黑体.ttf},AutoFakeBold=2.2]{黑体}
 \setCJKmonofont[Path=字体目录/,UprightFont={黑体.ttf}]{黑体}
-\setCJKfamilyfont{song}[Path=字体目录/,UprightFont={宋体.ttc},BoldFont={黑体.ttf},ItalicFont={宋体.ttc},AutoFakeSlant=.15]{宋体}
+\setCJKfamilyfont{song}[Path=字体目录/,UprightFont={宋体.ttc},BoldFont={宋体.ttc},BoldFeatures={FakeBold=2.0},ItalicFont={宋体.ttc},AutoFakeSlant=.15]{宋体}
 \setCJKfamilyfont{hei}[Path=字体目录/,UprightFont={黑体.ttf},BoldFont={黑体.ttf},AutoFakeBold=2.2]{黑体}
 \setCJKfamilyfont{covertitle}[Path=字体目录/,UprightFont={华文新魏.ttf},AutoFakeBold=2.0]{华文新魏}
 \renewcommand{\songti}{\CJKfamily{song}}
@@ -69,6 +82,13 @@
 \linespread{1.3}\selectfont
 \setlength{\parindent}{2em}
 \setlength{\parskip}{0pt}
+% 收紧项目列表的上下和条目间距，使其更接近正文普通行距
+\setlist[itemize]{itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt}
+% 全局收紧行间公式与上下文的距离，尽量贴近正文普通行距
+%\setlength{\abovedisplayskip}{-6pt}
+%\setlength{\belowdisplayskip}{-6pt}
+%\setlength{\abovedisplayshortskip}{-6pt}
+%\setlength{\belowdisplayshortskip}{-6pt}
 \xeCJKsetup{CJKglue=\hskip 0pt plus 0.08\baselineskip}
 
 \ctexset{
@@ -77,46 +97,47 @@
     number=\arabic{chapter},
     format+=\centering\heiti\zihao{3},
     beforeskip=-1.0cm,
-    afterskip=0.75\baselineskip
+    afterskip=1\baselineskip
   },
   section={
     format=\raggedright\heiti\zihao{4},
     number=\arabic{chapter}.\arabic{section},
-    beforeskip=.5\baselineskip,
-    afterskip=.5\baselineskip
+    beforeskip=0pt,
+    afterskip=1\baselineskip
   },
   subsection={
-    format+=\heiti\zihao{-4},
+    format=\heiti\zihao{-4},
     number=\arabic{chapter}.\arabic{section}.\arabic{subsection},
     beforeskip=.5\baselineskip,
     afterskip=.5\baselineskip
   },
-  subsubsection={
-    format+=\heiti\zihao{-4},
-    number=\arabic{chapter}.\arabic{section}.\arabic{subsection}.\arabic{subsubsection},
-    runin=false,
-    beforeskip=.5\baselineskip,
-    afterskip=.5\baselineskip
-  }
+%  subsubsection={
+%    format+=\heiti\zihao{-4},
+%    number=\arabic{chapter}.\arabic{section}.\arabic{subsection}.\arabic{subsubsection},
+%    runin=false,
+%    beforeskip=.5\baselineskip,
+%    afterskip=.5\baselineskip
+%  } % 学校不允许使用四级标题，故注释此层级样式
 }
 
 \renewcommand{\thefigure}{\arabic{chapter}-\arabic{figure}}
 \renewcommand{\thetable}{\arabic{chapter}-\arabic{table}}
-\captionsetup[figure]{font={small},labelsep=space,justification=centering}
+\DeclareCaptionFont{qkustwuhao}{\zihao{5}}
+\captionsetup[figure]{font=qkustwuhao,labelsep=space,justification=centering}
 \captionsetup[table]{font={small,bf},labelsep=space,justification=centering} % <-- 加上了 bf 强制加粗表名
 
 \renewcommand{\contentsname}{\hspace*{\fill}\heiti\zihao{3}目\quad 录\hspace*{\fill}}
 \setlength\cftbeforetoctitleskip{-1.2cm}
 \setlength\cftaftertoctitleskip{18pt}
-% ---- 一级标题（章）的字体加粗（黑体） ----
-\renewcommand{\cftchapfont}{\tocheifont\bfseries\zihao{4}}
-\renewcommand{\cftchappagefont}{\tocheifont\bfseries\zihao{4}}
+% ---- 一级标题（章）的字体：宋体、小四、加粗 ----
+\renewcommand{\cftchapfont}{\songti\bfseries\zihao{-4}}
+\renewcommand{\cftchappagefont}{\songti\bfseries\zihao{-4}}
 
-% ---- 二三级标题字体保持不变（普通细体） ----
-\renewcommand{\cftsecfont}{\zihao{-4}}
-\renewcommand{\cftsubsecfont}{\zihao{-4}}
-\renewcommand{\cftsecpagefont}{\zihao{-4}}
-\renewcommand{\cftsubsecpagefont}{\zihao{-4}}
+% ---- 二三级标题字体：宋体、小四 ----
+\renewcommand{\cftsecfont}{\songti\zihao{-4}}
+\renewcommand{\cftsubsecfont}{\songti\zihao{-4}}
+\renewcommand{\cftsecpagefont}{\songti\zihao{-4}}
+\renewcommand{\cftsubsecpagefont}{\songti\zihao{-4}}
 
 % ---- 引导点（虚线）设置 ----
 % \cftdotfill{数字}：数字越小，点越密。默认是 4.5。这里改为 1.2 显著加密。
@@ -135,7 +156,7 @@
 \setlength{\cftbeforechapskip}{4pt}   % 默认是 1em，改小就能压扁“前言”和“绪论”之间的缝隙
 \setlength{\cftbeforesecskip}{0pt}
 \setlength{\cftbeforesubsecskip}{0pt}
-\setcounter{secnumdepth}{3}
+\setcounter{secnumdepth}{2}
 \setcounter{tocdepth}{2}
 
 \makeatletter
@@ -180,7 +201,7 @@
 
 \newcommand{\qkust@headerline}[1]{%
   \fancyhf{}
-  \fancyhead[C]{\zihao{5}\songti #1}
+  \fancyhead[C]{\zihao{-5}\songti #1}
   \fancyfoot[C]{\zihao{5}\thepage}
   \renewcommand\headrulewidth{0.4pt}
   \renewcommand\footrulewidth{0pt}}
@@ -306,7 +327,7 @@
   % 正文：小四( \zihao{-4} )、宋体( \songti )
   \zihao{-4}\songti
 }{%
-  \par\vspace{1.5em} % 正文结束与关键词之间的间距
+  \par\vspace{15.6pt} % 正文结束与关键词之间的间距
   % 关键词标签：四号( \zihao{4} )、黑体( \heiti )，顶格不缩进( \noindent )
   % 关键词内容：小四( \zihao{-4} )、宋体( \songti )
   \noindent{\heiti\zihao{4} 关键词：}{\zihao{-4}\songti\varKeyword}\par
@@ -330,11 +351,11 @@
   %ABSTRACT 和 正文 之间的距离
   \vspace{1.0cm}
 
-  % 【修改】英文正文字号改为小四 (\zihao{-4})
-  \zihao{5}
+  % 英文摘要正文字号设置为小四
+  \zihao{-4}
 }{%
   %正文 和 KEY WORDS 之间的距离
-  \par\vspace{1.5cm}
+  \par\vspace{31.2pt}
   \noindent{\bfseries\zihao{4} KEY WORDS: }{\zihao{-4}\varKeyword}\par
   \clearpage}
 
@@ -346,14 +367,14 @@
   \addcontentsline{toc}{chapter}{致谢}
 }{\clearpage}
 
-% ---- 顺手修复附录也会缺失页眉的潜在 Bug ----
-\renewenvironment{appendix}{%
-  \clearpage
-  \pagestyle{qkustappendix}
-  \chapter*{附录}
-  \thispagestyle{qkustappendix} % 【修改点】：同样移到了 chapter 后面
-  \addcontentsline{toc}{chapter}{附录}
-}{\clearpage}
+%% ---- 顺手修复附录也会缺失页眉的潜在 Bug ----
+%\renewenvironment{appendix}{%
+%  \clearpage
+%  \pagestyle{qkustappendix}
+%  \chapter*{附录}
+%  \thispagestyle{qkustappendix} % 【修改点】：同样移到了 chapter 后面
+%  \addcontentsline{toc}{chapter}{附录}
+%}{\clearpage}
 
 % ---- 修复前言缺失页眉 ----
 \newcommand{\preface}{%
@@ -371,7 +392,10 @@
   \ctexset{chapter={pagestyle=empty}} % 【修改】章标题页空样式，去掉页码
   \tocloftpagestyle{empty} % 【关键】废掉 tocloft 宏包强加的样式，去掉页码和页眉
 
+  \begingroup
+  \setstretch{1.25}
   \tableofcontents
+  \endgroup
   \clearpage
   \ctexset{chapter={pagestyle=plain}} % 恢复后续正文默认样式
 }
@@ -391,6 +415,13 @@
   \addcontentsline{toc}{chapter}{参考文献}
   \zihao{-4}\songti
   \bibliography{#1}}
+
+\newcommand{\qkust@englishcaptionname}{%
+  \ifdefstring{\@captype}{figure}{Fig.}{%
+    \ifdefstring{\@captype}{table}{Table}{\@captype}}}
+
+\newcommand{\bicaption}[2]{%
+  \caption[#1]{#1\\[2pt]\normalfont\zihao{5} \qkust@englishcaptionname~\csname the\@captype\endcsname\enspace #2}}
 
 \makeatother
 
