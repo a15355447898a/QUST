@@ -418,10 +418,10 @@
 
 \newcommand{\qkust@englishcaptionname}{%
   \ifdefstring{\@captype}{figure}{Fig.}{%
-    \ifdefstring{\@captype}{table}{Table}{\@captype}}}
+    \ifdefstring{\@captype}{table}{Tab.}{\@captype}}}
 
 \newcommand{\bicaption}[2]{%
-  \caption[#1]{#1\\[2pt]\normalfont\zihao{5} \qkust@englishcaptionname~\csname the\@captype\endcsname\enspace #2}}
+  \caption[#1]{#1\\[2pt]\ifdefstring{\@captype}{table}{\bfseries}{\normalfont}\zihao{5} \qkust@englishcaptionname~\csname the\@captype\endcsname\enspace #2}}
 
 \makeatother
 
