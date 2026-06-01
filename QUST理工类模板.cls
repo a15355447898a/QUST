@@ -27,6 +27,8 @@
 }
 \RequirePackage{fancyhdr}
 \RequirePackage{hyperref}
+\RequirePackage{xurl}
+\urlstyle{rm}
 \RequirePackage{graphicx}
 \RequirePackage{array}
 \RequirePackage{makecell}
@@ -52,6 +54,15 @@
 \RequirePackage{enumitem}
 \RequirePackage{tabularx}
 
+% 统一三线表：默认按版心宽度铺满，列格式由使用处传入
+\newenvironment{qkustthreetable}[1]{%
+  \tabularx{\textwidth}{#1}%
+  \toprule
+}{%
+  \bottomrule
+  \endtabularx
+}
+
 \hypersetup{pdfencoding=auto}
 \ifprint
   \hypersetup{colorlinks,linkcolor=black,anchorcolor=black,citecolor=black,urlcolor=black}
@@ -60,7 +71,7 @@
 \fi
 
 \defaultfontfeatures{Ligatures=TeX}
-\setmainfont[Path=字体目录/,UprightFont={Times New Roman.ttf},BoldFont={Times New Roman.ttf},BoldFeatures={FakeBold=4.5},ItalicFont={Times New Roman.ttf},BoldItalicFont={Times New Roman.ttf}]{Times New Roman}
+\setmainfont[Path=字体目录/,UprightFont={Times New Roman 常规.TTF},BoldFont={Times New Roman 粗体.TTF},ItalicFont={Times New Roman 斜体.TTF},BoldItalicFont={Times New Roman 斜粗体.TTF}]{Times New Roman}
 \setCJKmainfont[Path=字体目录/,UprightFont={宋体.ttc},BoldFont={宋体.ttc},BoldFeatures={FakeBold=2.0},ItalicFont={宋体.ttc},AutoFakeSlant=.15]{宋体}
 \setCJKsansfont[Path=字体目录/,UprightFont={黑体.ttf},BoldFont={黑体.ttf},AutoFakeBold=2.2]{黑体}
 \setCJKmonofont[Path=字体目录/,UprightFont={黑体.ttf}]{黑体}
@@ -84,11 +95,20 @@
 \setlength{\parskip}{0pt}
 % 收紧项目列表的上下和条目间距，使其更接近正文普通行距
 \setlist[itemize]{itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt}
+% 参考文献条目之间不额外加空白，长条目折行也沿用正文行距
+\AtBeginEnvironment{thebibliography}{%
+  \linespread{1.3}\selectfont
+  \setlength{\bibsep}{0pt}% natbib 条目间距
+  \setlength{\itemsep}{0pt}% 列表条目间距
+  \setlength{\parsep}{0pt}% 条目内段间距
+  \setlength{\parskip}{0pt}}
 % 全局收紧行间公式与上下文的距离，尽量贴近正文普通行距
-%\setlength{\abovedisplayskip}{-6pt}
-%\setlength{\belowdisplayskip}{-6pt}
-%\setlength{\abovedisplayshortskip}{-6pt}
-%\setlength{\belowdisplayshortskip}{-6pt}
+\AtBeginDocument{%
+  \setlength{\abovedisplayskip}{4pt plus 2pt minus 1pt}% 公式前
+  \setlength{\belowdisplayskip}{4pt plus 2pt minus 1pt}% 公式后
+  \setlength{\abovedisplayshortskip}{4pt plus 2pt minus 1pt}% 短行公式前
+  \setlength{\belowdisplayshortskip}{4pt plus 2pt minus 1pt}% 短行公式后
+  \setlength{\jot}{0.3\baselineskip}}% 多行公式内部行距
 \xeCJKsetup{CJKglue=\hskip 0pt plus 0.08\baselineskip}
 
 \ctexset{
@@ -122,6 +142,7 @@
 
 \renewcommand{\thefigure}{\arabic{chapter}-\arabic{figure}}
 \renewcommand{\thetable}{\arabic{chapter}-\arabic{table}}
+\renewcommand{\theequation}{\arabic{chapter}-\arabic{equation}}
 \DeclareCaptionFont{qkustwuhao}{\zihao{5}}
 \captionsetup[figure]{font=qkustwuhao,labelsep=space,justification=centering}
 \captionsetup[table]{font={small,bf},labelsep=space,justification=centering} % <-- 加上了 bf 强制加粗表名
@@ -207,7 +228,7 @@
   \renewcommand\footrulewidth{0pt}}
 
 \fancypagestyle{qkustmain-odd}{%
-  \qkust@headerline{青岛科技大学本科毕业设计（论文）}}
+\qkust@headerline{青岛科技大学本科毕业论文}}
 
 \fancypagestyle{qkustmain-even}{%
   \qkust@headerline{\qkusttitleboth}}
@@ -225,10 +246,7 @@
   \qkust@headerline{附录}}
 
 \fancypagestyle{qkustthanks}{%
-  \fancyhf{}
-  \fancyfoot[C]{\zihao{5}\thepage}
-  \renewcommand\headrulewidth{0pt}
-  \renewcommand\footrulewidth{0pt}}
+  \qkust@headerline{致谢}}
 
 \fancypagestyle{qkustblankheader}{%
   \fancyhf{}
@@ -236,10 +254,26 @@
   \renewcommand\headrulewidth{0pt}
   \renewcommand\footrulewidth{0pt}}
 
+\newcommand{\qkust@blankpage}{%
+  \clearpage
+  \hypersetup{pageanchor=false}%
+  \thispagestyle{empty}%
+  \null
+  \clearpage
+  \hypersetup{pageanchor=true}}
+
+\newcommand{\qkust@cleartooddpage}{%
+  \clearpage
+  \ifodd\value{page}\else
+    \thispagestyle{empty}%
+    \null
+    \clearpage
+  \fi}
+
 % 【新增】强行接管默认的 plain 样式。自动判断奇偶页，奇数页显示校名，偶数页显示标题。
 % 这将彻底修复所有正文大章（如：结论、第一章）第一页没有页眉的问题！
 \fancypagestyle{plain}{%
-  \qkust@headerline{\ifodd\value{page}青岛科技大学本科毕业设计（论文）\else\qkusttitleboth\fi}
+  \qkust@headerline{\ifodd\value{page}青岛科技大学本科毕业论文\else\qkusttitleboth\fi}
 }
 
 \newcommand{\qkust@applymainpagestyle}{%
@@ -270,7 +304,7 @@
     \begin{center}
       {\covertitlefont\bfseries\zihao{1} 青\hspace{0.4em}岛\hspace{0.4em}科\hspace{0.4em}技\hspace{0.4em}大\hspace{0.4em}学\par}
       \vspace{0.2cm}
-      {\begingroup\renewcommand{\ULthickness}{1.2pt}\coverheifont\bfseries\zihao{2}\thickuuline{\strut 本\hspace{0.3em}科\hspace{0.3em}毕\hspace{0.3em}业\hspace{0.3em}设\hspace{0.3em}计（论文）}\par\endgroup}
+      {\begingroup\renewcommand{\ULthickness}{1.2pt}\coverheifont\bfseries\zihao{2}\thickuuline{\strut 本\hspace{0.3em}科\hspace{0.3em}毕\hspace{0.3em}业\hspace{0.3em}论\hspace{0.3em}文}\par\endgroup}
     \end{center}
     \vspace{1.6cm}
     \begingroup
@@ -297,7 +331,10 @@
       \hspace{0.4em}\uline{\makebox[0.9cm][c]{\mdseries\heiti\zihao{4}\@@dateM}}\hspace{0.1em}月%
       \hspace{0.4em}\uline{\makebox[0.9cm][c]{\mdseries\heiti\zihao{4}\@@dateD}}\hspace{0.1em}日}
     \endgroup
-\end{titlepage}}
+ \end{titlepage}%
+ % 为双面打印装订额外加入的空白页；当前注释以取消该空白页
+ %\qkust@blankpage
+}
 
 \def\declaration{}
 
@@ -312,11 +349,8 @@
   \setcounter{page}{1}
   \keyword{#1}
   \begin{center}
-    % 【新增】自动调取封面填写的中文题目：三号( \zihao{3} )、黑体( \heiti )、居中
-    {\heiti\zihao{3}\the\title\par}
-    \vspace{0.8cm}
-    % 【新增】把你写在英文变量里的“第二行中文题目”也打印出来
-    {\heiti\zihao{3}\the\titleEn\par}
+    % 中文摘要页题目与封面一致，但摘要页按单行合并显示
+    {\heiti\zihao{3}\the\title\the\titleEn\par}
     \vspace{0.8cm} % 题目与“摘要”二字之间的垂直间距
 
     % 摘要标题：三号、黑体、中间空两个半角（\quad）
@@ -331,11 +365,13 @@
   % 关键词标签：四号( \zihao{4} )、黑体( \heiti )，顶格不缩进( \noindent )
   % 关键词内容：小四( \zihao{-4} )、宋体( \songti )
   \noindent{\heiti\zihao{4} 关键词：}{\zihao{-4}\songti\varKeyword}\par
-  \clearpage}
+  % 为双面打印装订额外加入的空白页；当前注释以取消该空白页
+  %\qkust@blankpage
+}
 
 \newenvironment{abstractEn}[1]{%
   \clearpage
-  \setcounter{page}{1} % 【新增】强制页码重新从 1 (罗马数字 I) 开始
+  \setcounter{page}{2} % 英文摘要页显示罗马数字 II
   \pagestyle{qkustenabstract}
   \thispagestyle{qkustenabstract}
   \keyword{#1}
@@ -357,13 +393,16 @@
   %正文 和 KEY WORDS 之间的距离
   \par\vspace{31.2pt}
   \noindent{\bfseries\zihao{4} KEY WORDS: }{\zihao{-4}\varKeyword}\par
-  \clearpage}
+  % 为双面打印装订额外加入的空白页；当前注释以取消该空白页
+  %\qkust@blankpage
+}
 
 \renewenvironment{thanks}{%
   \clearpage
-  \pagestyle{empty} % 【修改】去掉页码
+  \pagestyle{qkustthanks}%
+  \ctexset{chapter={pagestyle=qkustthanks}}%
   \chapter*{致谢}
-  \thispagestyle{empty} % 【修改】强行洗掉本页所有的页眉和页码
+  \thispagestyle{qkustthanks}%
   \addcontentsline{toc}{chapter}{致谢}
 }{\clearpage}
 
@@ -405,16 +444,19 @@
   \pagestyle{qkustmain-odd}}
 
 \newcommand{\reference}[1]{%
-  \clearpage
+  % 为双面打印装订额外加入的空白页；当前注释以取消参考文献前的补白页
+  %\qkust@cleartooddpage
   \pagestyle{qkustreference}
   % 【关键修改】：不再使用 \thispagestyle，而是强制规定接下来的 chapter 必须使用参考文献的页眉！
   \ctexset{chapter={pagestyle=qkustreference}}
-  \nocite{*}
   \bibliographystyle{参考文献样式}
   \phantomsection
   \addcontentsline{toc}{chapter}{参考文献}
   \zihao{-4}\songti
-  \bibliography{#1}}
+  \bibliography{#1}%
+  % 为双面打印装订额外加入的空白页；当前注释以取消参考文献后的补白页
+  %\qkust@cleartooddpage
+}
 
 \newcommand{\qkust@englishcaptionname}{%
   \ifdefstring{\@captype}{figure}{Fig.}{%

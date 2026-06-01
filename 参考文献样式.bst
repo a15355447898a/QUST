@@ -88,11 +88,12 @@ ENTRY { address			% 地址
 	author			% 作者
 	booktitle		% 专著/论文集名
 	chapter			% 
-	day			%
-	dayfiled		%
-	edition			% 版本
-	editor			% 编者
-	howpublished		% 出版形式
+		day			%
+		dayfiled		%
+		edition			% 版本
+		eprint			%
+		editor			% 编者
+		howpublished		% 出版形式
 	esubtype		% 电子文献子类
 	institution		% 
 	journal			% 期刊
@@ -140,10 +141,10 @@ FUNCTION {bbl.etal}        { language empty$ { "et~al" } { "等" } if$ }
 FUNCTION {bbl.sine.loco}   { language empty$ { "S.~l." } { "出版地不详" } if$ }
 FUNCTION {bbl.sine.nomine} { language empty$ { "s.~n." } { "出版者不详" } if$ }
 
-FUNCTION {bbl.comma}       { language empty$ { ", " } { "，" } if$ }
-FUNCTION {bbl.colon}       { language empty$ { ": " } { "：" } if$ }
-FUNCTION {bbl.period}      { language empty$ { "." } { "．" } if$ }
-FUNCTION {bbl.parallel}    { "~//~" }
+FUNCTION {bbl.comma}       { ", " }
+FUNCTION {bbl.colon}       { ": " }
+FUNCTION {bbl.period}      { "." }
+FUNCTION {bbl.parallel}    { "//" }
 
 FUNCTION {bbl.st}          { "st" }	% 序数词后缀
 FUNCTION {bbl.nd}          { "nd" }	% 序数词后缀
@@ -450,32 +451,8 @@ FUNCTION {output.year}
 %   %z
 % }
 
-% 对于中文文献, 用全角句点替换英文句点
 FUNCTION {replace.half.width.period} {
-%   % DEBUG
-%   duplicate$ "-- replace.half.width.period(" swap$ * ")" * debug.output
-%   % END OF DEBUG
-  language empty$
-    { " " * }				   % 对于英文文献, 在句点后加一空格
-    { duplicate$ text.length$ 'numnames := % numnames 等于字符串长度
-%       % DEBUG
-%       numnames int.to.str$ "---- text.length$=" swap$ * debug.output
-%       % END OF DEBUG
-      duplicate$ numnames #1 substring$ "." =
-	{ % % DEBUG
-% 	  "---- Found '.' at the end" debug.output
-% 	  % END OF DEBUG
-	  numnames #1 -
-	  #1 swap$ substring$
-	  bbl.period *
-	}
-	{ skip$ }
-      if$
-    }
-  if$
-%   % DEBUG
-%   duplicate$ "---- Return=" swap$ * debug.output
-%   % END OF DEBUG
+
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -943,7 +920,7 @@ FUNCTION {format.translators}
 { translator empty$
     { "" }			% 无译者
     { new.block			% 有译者
-      translator format.names "，译" *
+      translator format.names ", 译" *
     }
   if$
 }
@@ -987,39 +964,51 @@ FUNCTION {bib.type.designator} {
 			{ type$ "article" = type$ "periodical" = or
 			    { "J" }
 			    { type$ "online" = type$ "webpage" = or type$ "www" = or
-				{ "EB" }
-				{ type$ "electronic" =
-				    { esubtype empty$
-					{ url empty$
-					    { "" }
-					    { "EB" }
-					  if$
-					}
-					{ esubtype "webpage" = 
-					    { "EB" }
-					    { esubtype "database" =
-						{ "DB" }
-						{ esubtype "program" =
-						    { "CP" }
+					{ "EB" }
+					{ type$ "electronic" =
+					    { esubtype empty$
+						{ url empty$
 						    { "" }
-						  if$ % electronics[program]
+						    { "EB" }
+						  if$
 						}
-					      if$ % electronics[database]
+						{ esubtype "webpage" =
+						    { "EB" }
+						    { esubtype "database" =
+							{ "DB" }
+							{ esubtype "program" =
+							    { "CP" }
+							    { "" }
+							  if$
+							}
+						      if$
+						    }
+						  if$
+						}
+					      if$
 					    }
-					  if$ % electronics[webpage]
+					    { type$ "misc" =
+						{ eprint empty$
+						    { url empty$
+							{ "" }
+							{ "EB" }
+						      if$
+						    }
+						    { "EB" }
+						  if$
+						}
+						{ "" }
+					      if$
+					    }
+					  if$
 					}
 				      if$
 				    }
-				    { "" } % 其他
-				  if$	   % electronics
+				  if$	% article/periodical
 				}
-			      if$ % online/webpage/www
+			      if$ 	% techreport
 			    }
-			  if$	% article/periodical
-			}
-		      if$ 	% techreport
-		    }
-		  if$		% phdthesis/mastersthesis
+			  if$		% phdthesis/mastersthesis
 		}
 	      if$ 		% patent
 	    }
@@ -1034,10 +1023,14 @@ FUNCTION {bib.type.designator} {
   % 电子文献载体标志代码
   duplicate$ "" =
     { skip$ }
-    { "~[" swap$ *
+    { "[" swap$ *
       howpublished empty$ 
 	{ url empty$
-	    { "" }
+	    { eprint empty$
+		{ "" }
+		{ "/OL" }
+	      if$
+	    }
 	    { "/OL" }
 	  if$
 	}
@@ -1050,13 +1043,13 @@ FUNCTION {bib.type.designator} {
 		    { howpublished "cdrom" =
 			{ "CD" }
 			{ "" }
-		      if$	% cdrom
+		      if$
 		    }
-		  if$		% disk
+		  if$
 		}
-	      if$		% magitude type
+	      if$
 	    }
-	  if$			% online
+	  if$
 	}
       if$ 
       * "]" *
@@ -1107,11 +1100,8 @@ FUNCTION {format.reference.date} {
 	{ "The refdate in " cite$ * " is missing." * warning$ }
       if$
     }
-    { output.state mid.sentence =
-	{ before.all 'output.state := }
-	{ skip$ }
-      if$
-      "~[" refdate * "]" * }
+    { new.block
+      "[" refdate * "]" * }
   if$
 }
 
@@ -1203,10 +1193,10 @@ FUNCTION {format.atitle}
     { "" }
     { title 
       newsletter empty$
-	{ "~[J" * }
+	{ "[J" * }
 	{ newsletter "yes" =
-	    { "~[N" * }
-	    { "~[J" * }
+	    { "[N" * }
+	    { "[J" * }
 	  if$
 	}
       if$
@@ -1221,7 +1211,7 @@ FUNCTION {format.atitle}
 FUNCTION {format.ictitle}
 { title empty$
     { "" }
-    { title "~[M]~//~" * 
+    { title "[M]//" * 
       editor format.names *
     }
   if$
@@ -1230,7 +1220,7 @@ FUNCTION {format.ictitle}
 FUNCTION {format.iptitle}
 { title empty$
     { "" }
-    { title "~[C]~//~" * 
+    { title "[C]//" * 
       editor format.names *
     }
   if$
@@ -1240,22 +1230,13 @@ FUNCTION {n.dashify}
 { 't :=
   ""
     { t empty$ not }
-    { t #1 #1 substring$ "-" =
-    { t #1 #2 substring$ "--" = not
-        { "--" *
-          t #2 global.max$ substring$ 't :=
-        }
-        {   { t #1 #1 substring$ "-" = }
+    { t #1 #2 substring$ "--" =
         { "-" *
+          t #3 global.max$ substring$ 't :=
+        }
+        { t #1 #1 substring$ *
           t #2 global.max$ substring$ 't :=
         }
-          while$
-        }
-      if$
-    }
-    { t #1 #1 substring$ *
-      t #2 global.max$ substring$ 't :=
-    }
       if$
     }
   while$
@@ -1265,15 +1246,14 @@ FUNCTION {n.dashify}
 FUNCTION {format.year.volume.number} {
   year empty$
     { "" }
-    { new.block
-      year 
+    { year 
       volume empty$
 	'skip$
 	{ bbl.comma * volume * }
       if$
       number empty$
 	'skip$
-	{ "~(" * number * ")" * }
+	{ "(" * number * ")" * }
       if$ 
       year2 empty$
 	{ skip$ }
@@ -1287,7 +1267,7 @@ FUNCTION {format.year.volume.number} {
 	      if$
 	      number2 empty$
 		'skip$
-		{ "~(" * number2 * ")" * }
+		{ "(" * number2 * ")" * }
 	      if$
 	    }
 	  if$
@@ -1374,7 +1354,7 @@ FUNCTION {format.techreport.title} {
 
 % 连续出版物标题格式
 FUNCTION {format.jtitle}
-{ title "~[J" *
+{ title "[J" *
   url empty$
     { "]" * }
     { "/OL]" * }
@@ -1385,8 +1365,8 @@ FUNCTION {format.jtitle}
 FUNCTION {format.ptitle.volume}
 { title 
   volume empty$
-    { "~[C]" }
-    { bbl.colon volume * "~[C]" * }
+    { "[C]" }
+    { bbl.colon volume * "[C]" * }
   if$ *
   %emphasize
 }
@@ -1771,47 +1751,15 @@ FUNCTION {format.address.publisher.year} {
 %   "--   year     =" year * debug.output
 %   % END OF DEBUG
   new.block
-  type$ "inproceedings" =
-    { pubaddress empty$
-	{ "" % "[" bbl.sine.loco * "]" * bbl.colon * % 无出版地
-	  publisher empty$
-	    { "there's neither pubaddress nor publisher in " cite$ * warning$
-	      "" * % "[" * bbl.sine.nomine * "]" * % 无出版者
-	    }
-	    { "there's a publisher but no pubaddress in " cite$ * warning$
-	      publisher *		% 有出版者
-	    }
-	  if$
-	}
-	{ publisher empty$
-	    { "there's a pubaddress but no publisher in " cite$ * warning$
-	      "" % "[" * bbl.sine.nomine * "]" * % 无出版者
-	    }
-	    { pubaddress bbl.colon *	% 有出版地
-	      publisher * }		% 有出版者
-	  if$
-	}
+  address empty$
+    { publisher empty$
+        { "" }
+        { publisher * }
       if$
     }
-    { address empty$
-	{ "" % "[" bbl.sine.loco * "]" * bbl.colon * % 无出版地
-	  publisher empty$
-	    { "there's neither address nor publisher in " cite$ * warning$
-	      "" * % "[" * bbl.sine.nomine * "]" * % 无出版者
-	    }
-	    { "there's a publisher but no address in " cite$ * warning$
-	      publisher *		% 有出版者
-	    }
-	  if$
-	}
-	{ publisher empty$
-	    { "there's a address but no publisher in " cite$ * warning$
-	      "" % "[" * bbl.sine.nomine * "]" * % 无出版者
-	    }
-	    { address bbl.colon *	% 有出版地
-	      publisher * }		% 有出版者
-	  if$
-	}
+    { publisher empty$
+        { address * }
+        { address bbl.colon * publisher * }
       if$
     }
   if$
@@ -1819,13 +1767,9 @@ FUNCTION {format.address.publisher.year} {
   % 出版年
   year empty$
     { "there's no year in " cite$ * warning$ }
-    { type$ "inproceedings" =
-	{ bbl.comma * year * }
-	{ publisher empty$ 
-	    { year * }
-	    { bbl.comma * year * }
-	  if$
-	}
+    { address empty$ publisher empty$ and
+        { year * }
+        { bbl.comma * year * }
       if$
 	
       type$ "periodical" =
@@ -2033,22 +1977,7 @@ FUNCTION {format.month.year} {
 FUNCTION {format.collection.title} {
   booktitle empty$
     { "" }
-    { new.block 
-      "In " booktitle *
-%       address empty$
-% 	{ skip$ }
-% 	{ bbl.comma * address * bbl.comma * 
-% 	  month empty$
-% 	    { skip$ }
-% 	    { month * }
-% 	  if$
-% 	  year empty$
-% 	    { skip$ }
-% 	    { " " * year * }
-% 	  if$
-% 	}
-%       if$
-    }
+    { booktitle }
   if$
 }
 % 图书中析出的文献
@@ -2133,6 +2062,7 @@ FUNCTION {periodical} {
     { format.editors output.nonnull }
   if$
   format.book.title "title" output.warn
+  new.block
   format.year.volume.number output
   format.address.publisher.year output
   format.url output
@@ -2215,9 +2145,7 @@ FUNCTION {inproceedings} {
   format.book.title "title"  output.warn
   format.collection.editors "editor" output.warn
   format.collection.title "booktitle" output.warn
-  format.address output
-  format.month.year output
-%  format.address.publisher.year	output.nonnull % 出版项
+  format.address.publisher.year	output.nonnull % 出版项
   format.pages "pages"          output.warn    %
   format.url                    output	       % URL
   format.note                   output	       % 备注项 
@@ -2317,12 +2245,13 @@ FUNCTION {misc}
 { start.entry
   format.authors output
   title howpublished new.block.checkb
-  format.title output
+  format.title bib.type.designator * output
   howpublished new.block.checka
   howpublished output
 %  format.date output
   format.address output
   format.month.year output
+  format.reference.date output
   format.url output
   new.block
   note output
